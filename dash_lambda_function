@@ -1,0 +1,35 @@
+'''
+The following JSON template shows what is sent as the payload:
+{
+    "serialNumber": "GXXXXXXXXXXXXXXXXX",
+    "batteryVoltage": "xxmV",
+    "clickType": "SINGLE" | "DOUBLE" | "LONG"
+}
+
+A "LONG" clickType is sent if the first press lasts longer than 1.5 seconds.
+"SINGLE" and "DOUBLE" clickType payloads are sent for short clicks.
+'''
+
+from __future__ import print_function
+
+import boto3
+import json
+import logging
+import urllib2
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+maker_key = 'x2Dj5KIEfImPUbosawo-Q'  # change it to your Maker key
+
+def handler(event, context):
+    logger.info('Received event: ' + json.dumps(event))
+    # make sure you created a receipe for event <serialNumber>-<clickType>
+    maker_event = '%s-%s' % (event['serialNumber'], event['clickType'])
+    logger.info('Maker event: ' + maker_event)
+    url = 'https://maker.ifttt.com/trigger/%s/with/key/%s' % (maker_event, maker_key)
+    f = urllib2.urlopen(url)
+    response = f.read()
+    f.close()
+    logger.info('Event has been sent to IFTTT Maker channel')
+    return response
